@@ -1,0 +1,31 @@
+name: Compilar Tasmota Sensors ESP8266
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Instalar PlatformIO y SCons compatible
+        run: |
+          pip install "SCons==4.7.0"
+          pip install platformio
+
+      - name: Compilar firmware tasmota-sensors
+        run: |
+          platformio run -e tasmota-sensors
+
+      - name: Subir binario como Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tasmota-sensors-9600
+          path: .pio/build/tasmota-sensors/firmware.bin*
