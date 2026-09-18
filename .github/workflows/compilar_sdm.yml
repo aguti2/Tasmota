@@ -17,15 +17,18 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Instalar PlatformIO y dependencias
+      - name: Instalar PlatformIO
         run: |
           python -m pip install --upgrade pip
-          pip install wheel
-          pip install "SCons==4.7.0"
           pip install platformio
 
-      - name: Crear dummy FortranCommon si es necesario
+      - name: Descargar plataformas y parchear FortranCommon
         run: |
+          # Descarga los paquetes de la plataforma espressif8266
+          pio pkg install -e tasmota-sensors
+          # Elimina el import obsoleto en cualquier script elf2bin.py descargado
+          find ~/.platformio -name "elf2bin.py" -exec sed -i "s/import SCons.Tool.FortranCommon/# import SCons.Tool.FortranCommon/g" {} +
+          # Parchea también dentro de los directorios de SCons por seguridad
           python3 -c "import sys, glob, os; [open(os.path.join(d, 'FortranCommon.py'), 'a').close() for p in sys.path for d in glob.glob(os.path.join(p, 'SCons', 'Tool'))]" || true
 
       - name: Compilar firmware tasmota-sensors
