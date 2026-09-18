@@ -1496,4 +1496,9 @@
   #define USE_I2S_OPUS
 #endif // USE_I2S_ALL
 
+#ifdef USE_SDM120
+  #undef SDM120_SPEED
+  #define SDM120_SPEED 9600
+#endif
+
 #endif  // _MY_USER_CONFIG_H_
