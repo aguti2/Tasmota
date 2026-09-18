@@ -22,9 +22,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install "platformio==6.1.19"
 
+      - name: Forzar 9600 baudios en el driver SDM120/220
+        run: |
+          # Reemplaza directamente en el código C del driver cualquier valor de 2400 por 9600
+          find tasmota/ -type f -name "*sdm120*.ino" -exec sed -i "s/SDM120_SPEED.*2400/SDM120_SPEED 9600/g" {} +
+          find tasmota/ -type f -name "*sdm120*.ino" -exec sed -i "s/define SDM120_SPEED 2400/define SDM120_SPEED 9600/g" {} +
+          # Comprobación en consola para verificar el cambio en el código
+          grep -rn "SDM120_SPEED" tasmota/ || true
+
       - name: Compilar firmware tasmota-sensors
         run: |
-          export PLATFORMIO_BUILD_FLAGS="-DSDM120_SPEED=9600"
           platformio run -e tasmota-sensors
 
       - name: Subir binario como Artifact
