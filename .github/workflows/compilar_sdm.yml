@@ -22,22 +22,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install "platformio==6.1.19"
 
-      - name: Forzar 9600 baudios en todo el codigo fuente
+      - name: Forzar 9600 baudios en el driver SDM
         run: |
-          echo "=== Buscando y reemplazando SDM120_SPEED en todo el repositorio ==="
-          # Reemplaza 2400 por 9600 en cualquier definicion de velocidad de SDM
-          find tasmota/ -type f \( -name "*.h" -o -name "*.c" -o -name "*.cpp" -o -name "*.ino" \) -exec sed -i "s/\bSDM120_SPEED\s\+2400\b/SDM120_SPEED 9600/g" {} +
-          find tasmota/ -type f \( -name "*.h" -o -name "*.c" -o -name "*.cpp" -o -name "*.ino" \) -exec sed -i "s/\bSDM220_SPEED\s\+2400\b/SDM220_SPEED 9600/g" {} +
-          find tasmota/ -type f \( -name "*.h" -o -name "*.c" -o -name "*.cpp" -o -name "*.ino" \) -exec sed -i "s/baudrate = 2400/baudrate = 9600/g" {} +
-          
-          # Inyecta la definicion global por flag de compilador en platformio_override.ini
-          echo "[env:tasmota-sensors]" >> platformio_override.ini
-          echo "build_flags = \${env:tasmota-sensors.build_flags} -DSDM120_SPEED=9600 -DSDM220_SPEED=9600" >> platformio_override.ini
-
-          echo "=== Lineas coincidentes tras el reemplazo ==="
-          grep -rn "SDM.*_SPEED" tasmota/ || true
+          # Sustituir directamente 2400 por 9600 en cualquier linea donde aparezca SDM120_SPEED o SDM220
+          find tasmota/ -type f \( -name "*.h" -o -name "*.c" -o -name "*.cpp" -o -name "*.ino" \) -exec sed -i 's/SDM120_SPEED\s\+2400/SDM120_SPEED 9600/g' {} +
+          find tasmota/ -type f \( -name "*.h" -o -name "*.c" -o -name "*.cpp" -o -name "*.ino" \) -exec sed -i 's/SDM220_SPEED\s\+2400/SDM220_SPEED 9600/g' {} +
+          # Mostrar las lineas modificadas en el log
+          grep -rn "SDM120_SPEED" tasmota/ || true
 
       - name: Compilar firmware tasmota-sensors
+        env:
+          PLATFORMIO_BUILD_FLAGS: "-DSDM120_SPEED=9600 -DSDM220_SPEED=9600"
         run: |
           platformio run -e tasmota-sensors
 
