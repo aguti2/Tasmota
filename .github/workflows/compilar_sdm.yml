@@ -22,18 +22,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install platformio
 
-      - name: Descargar plataformas y parchear FortranCommon
+      - name: Inyectar modulo dummy FortranCommon en SCons
         run: |
-          # Descarga los paquetes de la plataforma espressif8266
-          pio pkg install -e tasmota-sensors
-          # Elimina el import obsoleto en cualquier script elf2bin.py descargado
-          find ~/.platformio -name "elf2bin.py" -exec sed -i "s/import SCons.Tool.FortranCommon/# import SCons.Tool.FortranCommon/g" {} +
-          # Parchea también dentro de los directorios de SCons por seguridad
-          python3 -c "import sys, glob, os; [open(os.path.join(d, 'FortranCommon.py'), 'a').close() for p in sys.path for d in glob.glob(os.path.join(p, 'SCons', 'Tool'))]" || true
+          python3 -c "import SCons.Tool, os, sys; p = os.path.join(os.path.dirname(SCons.Tool.__file__), 'FortranCommon.py'); open(p, 'w').write('# dummy module\n'); print('Creado en:', p)"
 
       - name: Compilar firmware tasmota-sensors
         run: |
-          platformio run -e tasmota-sensors
+          # Si falla la primera pasada al descargar el framework, parcheamos elf2bin.py y reintentamos
+          platformio run -e tasmota-sensors || {
+            find ~/.platformio -name "elf2bin.py" -exec sed -i "s/import SCons.Tool.FortranCommon/# import SCons.Tool.FortranCommon/g" {} +
+            platformio run -e tasmota-sensors
+          }
 
       - name: Subir binario como Artifact
         uses: actions/upload-artifact@v4
