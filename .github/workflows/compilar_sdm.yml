@@ -24,6 +24,7 @@ jobs:
 
       - name: Compilar firmware tasmota-sensors
         run: |
+          export PLATFORMIO_BUILD_FLAGS="-DSDM120_SPEED=9600"
           platformio run -e tasmota-sensors
 
       - name: Subir binario como Artifact
