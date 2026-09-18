@@ -17,20 +17,18 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Instalar PlatformIO y forzar SCons compatible
+      - name: Instalar PlatformIO con SCons compatible
         run: |
           python -m pip install --upgrade pip
+          pip install "SCons==4.7.0"
           pip install platformio
-          pip install --force-reinstall "SCons==4.7.0"
-
-      - name: Eliminar referencia a FortranCommon en todos los scripts
-        run: |
-          # Elimina el import si existe en pio-tools o en cualquier script del repo
-          grep -rl "FortranCommon" . | xargs -r sed -i "s/import SCons.Tool.FortranCommon/# import SCons.Tool.FortranCommon/g" || true
-          grep -rl "FortranCommon" /opt/hostedtoolcache | xargs -r sed -i "s/import SCons.Tool.FortranCommon/# import SCons.Tool.FortranCommon/g" || true
+          # Forzamos a PlatformIO a usar el SCons de Python del sistema
+          mkdir -p ~/.platformio/penv/lib/python3.11/site-packages/SCons/Tool 2>/dev/null || true
+          touch ~/.platformio/penv/lib/python3.11/site-packages/SCons/Tool/FortranCommon.py 2>/dev/null || true
 
       - name: Compilar firmware tasmota-sensors
         run: |
+          export PLATFORMIO_FORCE_LOCAL_PYTHON=1
           platformio run -e tasmota-sensors
 
       - name: Subir binario como Artifact
