@@ -15,21 +15,24 @@ jobs:
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.11'
 
-      - name: Instalar dependencias
+      - name: Instalar PlatformIO y dependencias
         run: |
           python -m pip install --upgrade pip
           pip install wheel
           pip install "SCons==4.7.0"
           pip install platformio
 
+      - name: Crear dummy FortranCommon si es necesario
+        run: |
+          python3 -c "import sys, glob, os; [open(os.path.join(d, 'FortranCommon.py'), 'a').close() for p in sys.path for d in glob.glob(os.path.join(p, 'SCons', 'Tool'))]" || true
+
       - name: Compilar firmware tasmota-sensors
         run: |
           platformio run -e tasmota-sensors
 
       - name: Subir binario como Artifact
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: tasmota-sensors-9600
