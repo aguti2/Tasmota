@@ -1,6 +1,6 @@
 /*
   my_user_config.h - user specific configuration for Tasmota
-
+ 
   Copyright (C) 2021  Theo Arends
 
   This program is free software: you can redistribute it and/or modify
